@@ -15,11 +15,11 @@ fn main()
     const WIDTH: u32 = 800;
     const HEIGHT: u32 = 600;
     
-    let opengl = OpenGL::V3_2;
+    let opengl = OpenGL::V2_1;
     
     // Construct the window.
     let mut window: PistonWindow =
-        WindowSettings::new("Canvas Demo", [WIDTH, HEIGHT])
+        WindowSettings::new("Socketmessenger", [WIDTH, HEIGHT])
             .opengl(opengl).exit_on_esc(true).vsync(true).build().unwrap();
     window.set_ups(60);
     
