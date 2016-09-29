@@ -20,7 +20,7 @@ fn main()
     // Construct the window.
     let mut window: PistonWindow =
         WindowSettings::new("Socketmessenger", [WIDTH, HEIGHT])
-            .opengl(opengl).exit_on_esc(true).vsync(true).build().unwrap();
+            .opengl(opengl).exit_on_esc(true).build().unwrap();
     window.set_ups(60);
     
     
@@ -111,6 +111,11 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
     widget::Canvas::new().flow_down(&[
         (ids.header, widget::Canvas::new().color(color::BLUE).pad_bottom(20.0))
         ]).set(ids.master, ui);
+        
+    
+    /*
+    *Add a TextBox to hold all chat send/recieved.
+    **/
 
     for edit in widget::TextEdit::new(textedit_text)
         .top_left_with_margins_on(ids.header, 0.0, 350.0)
@@ -121,6 +126,9 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
             *textedit_text = edit;
         };
 
+    /*
+    *Change the button to handle enter and click event to send.
+    **/
     let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
     for _click in button.clone().middle_of(ids.floating_a).set(ids.bing, ui) {
         println!("Bing!");
