@@ -119,17 +119,16 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         
 
     const PAD: Scalar = 20.0;
+    
+    widget::Tabs::new(&[(ids.tab_chattext1, "Chat 1"), (ids.tab_chattext2, "Chat 2")])
+        .wh_of(ids.header)
+        .color(color::BLUE)
+        .label_color(color::WHITE)
+        .middle_of(ids.header)
+        .set(ids.tabs, ui);
     /*
     *Add a TextBox to hold all chat send/recieved.
     **/
-    
-    widget::Text::new(chat_text)
-        .color(color::LIGHT_RED)
-        .top_left_with_margins_on(ids.header, 15.0, 15.0)
-        .align_text_left()
-        .font_size(15)
-        .line_spacing(10.0)
-        .set(ids.chat_text, ui);
 
     for edit in widget::TextEdit::new(textedit_text)
         .top_left_with_margins_on(ids.send_text, 15.0, 15.0)
@@ -140,6 +139,14 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         {
             *textedit_text = edit;
         };
+    
+    widget::Text::new(chat_text)
+        .color(color::LIGHT_RED)
+        .top_left_with_margins_on(ids.tab_chattext1, 15.0, 15.0)
+        .align_text_left()
+        .font_size(15)
+        .line_spacing(10.0)
+        .set(ids.chat_text, ui);
 
     /*
     *Change the button to handle enter and click event to send.
@@ -161,6 +168,10 @@ widget_ids! {
         header,
         chat_text,
         body,
+        tabs,
+        tab_chattext1,
+        tab_chattext2,
+        tab_sendbutton,
         send_text,
         send_button,
         floating_a,
