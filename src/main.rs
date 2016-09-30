@@ -46,6 +46,7 @@ fn main()
     let ids = &mut Ids::new(ui.widget_id_generator());
     
     let mut textedit_text = "Test".to_owned();
+    let mut chat_text = "Test2".to_owned();
     
     
     // Poll events from the window.
@@ -57,7 +58,7 @@ fn main()
         }
 
         event.update(|_| {
-            set_widgets(ui.set_widgets(), ids, &mut textedit_text);
+            set_widgets(ui.set_widgets(), ids, &mut textedit_text, &mut chat_text);
         });
 
         window.draw_2d(&event, |c, g| {
@@ -105,21 +106,35 @@ fn main()
 
 
 // Draw the Ui.
-fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut String) {
-    use conrod::{color, widget, Colorable, Positionable, Sizeable, Widget};
+fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut String, chat_text: &mut String) {
+    use conrod::{color, widget, Colorable, Positionable, Scalar, Sizeable, Widget};
     
     widget::Canvas::new().flow_down(&[
-        (ids.header, widget::Canvas::new().color(color::BLUE).pad_bottom(20.0))
+        (ids.header, widget::Canvas::new().color(color::BLUE).pad_bottom(20.0)),
+        (ids.body, widget::Canvas::new().flow_right(&[
+            (ids.send_text, widget::Canvas::new().color(color::RED).pad_bottom(20.0)),
+            (ids.send_button, widget::Canvas::new().color(color::BLACK).pad_bottom(20.0))
+            ]))
         ]).set(ids.master, ui);
         
-    
+
+    const PAD: Scalar = 20.0;
     /*
     *Add a TextBox to hold all chat send/recieved.
     **/
+    
+    widget::Text::new(chat_text)
+        .color(color::LIGHT_RED)
+        .top_left_with_margins_on(ids.header, 15.0, 15.0)
+        .align_text_left()
+        .font_size(15)
+        .line_spacing(10.0)
+        .set(ids.chat_text, ui);
 
     for edit in widget::TextEdit::new(textedit_text)
-        .top_left_with_margins_on(ids.header, 0.0, 350.0)
-        .font_size(32)
+        .top_left_with_margins_on(ids.send_text, 15.0, 15.0)
+        .font_size(15)
+        .padded_w_of(ids.send_text, PAD)
         .color(conrod::color::rgb(20.2, 40.35, 0.45))
         .set(ids.textedit, ui)
         {
@@ -144,6 +159,10 @@ widget_ids! {
     struct Ids {
         master,
         header,
+        chat_text,
+        body,
+        send_text,
+        send_button,
         floating_a,
         floating_b,
         bing,
