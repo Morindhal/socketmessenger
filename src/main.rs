@@ -12,6 +12,7 @@ use piston_window::{EventLoop, OpenGL, PistonWindow, UpdateEvent, WindowSettings
 
 fn main()
 {
+
     const WIDTH: u32 = 800;
     const HEIGHT: u32 = 600;
     
@@ -47,8 +48,25 @@ fn main()
     
     let mut textedit_text = "Test".to_owned();
     let mut chat_text = "Test2".to_owned();
+
+/*
+*This is the server-part of the chat-program, currently simply echoes back what was recieved.
+*It is here that chat messages should be presented to the user.
+**/
+    thread::spawn(move || {
+        listen
+        ("127.0.0.1:3012",
+            |out| {
+            move |msg| {
+                out.send(&*format!("{0}{1}{0}",msg, " SVAR! "))
+                }
+            }
+        ).unwrap(); 
+    });
     
-    
+/*
+*This is the main loop of the program.
+**/
     // Poll events from the window.
     while let Some(event) = window.next()
     {
@@ -71,35 +89,6 @@ fn main()
             }
         });
     }
-/*
-*This is the server-part of the chat-program, currently simply echoes back what was recieved.
-*It is here that chat messages should be presented to the user.
-**/
-    thread::spawn(move || {
-        listen
-        ("127.0.0.1:3012",
-            |out| {
-            move |msg| {
-                out.send(&*format!("{0}{1}{0}",msg," SVAR! "))
-                }
-            }
-        ).unwrap(); 
-    });
-
-/*
-*This is the client-part of the chat-program, currently simply sends one message and then ends the program.
-*It is here that input should be placed into the program.
-*Should I have this in a thread seperate from the main thread as well or simply have a main loop in the main-thread?
-**/
-    std::thread::sleep(std::time::Duration::from_millis(1000));
-    connect("ws://127.0.0.1:3012", |out| {
-        out.send("Hello WebSocket").unwrap();
-
-        move |msg| {
-            println!("Got message: {}", msg);
-            out.close(CloseCode::Normal)
-        }
-    }).unwrap()
 }
 
 
@@ -126,10 +115,8 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         .label_color(color::WHITE)
         .middle_of(ids.header)
         .set(ids.tabs, ui);
-    /*
-    *Add a TextBox to hold all chat send/recieved.
-    **/
 
+//This is the user-editable chat text.
     for edit in widget::TextEdit::new(textedit_text)
         .top_left_with_margins_on(ids.send_text, 15.0, 15.0)
         .font_size(15)
@@ -139,7 +126,9 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         {
             *textedit_text = edit;
         };
-    
+
+//This is the text that should echo all recieved chat, as soon as I figure out how to do it :)
+//I really need to read up more on threads in rust.
     widget::Text::new(chat_text)
         .color(color::LIGHT_RED)
         .top_left_with_margins_on(ids.tab_chattext1, 15.0, 15.0)
@@ -148,15 +137,24 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         .line_spacing(10.0)
         .set(ids.chat_text, ui);
 
-    /*
-    *Change the button to handle enter and click event to send.
-    **/
+//This is the send button that sends whats in the TextEdit and then erases it.
     let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
-    for _click in button.clone().middle_of(ids.floating_a).set(ids.bing, ui) {
-        println!("Bing!");
-    }
-    for _click in button.middle_of(ids.floating_b).set(ids.bong, ui) {
-        println!("Bong!");
+    for _click in button.clone().middle_of(ids.send_button).set(ids.bing, ui) {
+
+/*
+*This is the client-part of the chat-program, currently simply sends one message and println's the response as well as what was sent.
+**/
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+            connect("ws://127.0.0.1:3012", |out| {
+                out.send(&*format!("{}",textedit_text)).unwrap();
+
+                move |msg| {
+                    println!("Got response: {}", msg);
+                    out.close(CloseCode::Normal)
+                }
+            }).unwrap();
+        println!("{}", *textedit_text);
+        *textedit_text = String::new();
     }
 }
 
