@@ -8,7 +8,7 @@ use std::thread;
 use ws::listen;
 use ws::{connect, CloseCode};
 
-use piston_window::{EventLoop, OpenGL, PistonWindow, UpdateEvent, WindowSettings};
+use piston_window::{EventLoop, OpenGL, PistonWindow, UpdateEvent};
 
 fn main()
 {
@@ -20,7 +20,7 @@ fn main()
     
     // Construct the window.
     let mut window: PistonWindow =
-        WindowSettings::new("Socketmessenger", [WIDTH, HEIGHT])
+        piston_window::WindowSettings::new("Socketmessenger", [WIDTH, HEIGHT])
             .opengl(opengl).exit_on_esc(true).build().unwrap();
     window.set_ups(60);
     
@@ -46,7 +46,13 @@ fn main()
     // Instantiate the generated list of widget identifiers.
     let ids = &mut Ids::new(ui.widget_id_generator());
     
-    let mut textedit_text = "Test".to_owned();
+    let mut textedit_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
+        Mauris aliquet porttitor tellus vel euismod. Integer lobortis volutpat bibendum. Nulla \
+        finibus odio nec elit condimentum, rhoncus fermentum purus lacinia. Interdum et malesuada \
+        fames ac ante ipsum primis in faucibus. Cras rhoncus nisi nec dolor bibendum pellentesque. \
+        Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. \
+        Quisque commodo nibh hendrerit nunc sollicitudin sodales. Cras vitae tempus ipsum. Nam \
+        magna est, efficitur suscipit dolor eu, consectetur consectetur urna.".to_owned();
     let mut chat_text = "Test2".to_owned();
 
 /*
@@ -75,9 +81,7 @@ fn main()
             ui.handle_event(e);
         }
 
-        event.update(|_| {
-            set_widgets(ui.set_widgets(), ids, &mut textedit_text, &mut chat_text);
-        });
+        event.update(|_| set_widgets(ui.set_widgets(), ids, &mut textedit_text, &mut chat_text));
 
         window.draw_2d(&event, |c, g| {
             if let Some(primitives) = ui.draw_if_changed() {
@@ -116,17 +120,6 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         .middle_of(ids.header)
         .set(ids.tabs, ui);
 
-//This is the user-editable chat text.
-    for edit in widget::TextEdit::new(textedit_text)
-        .top_left_with_margins_on(ids.send_text, 15.0, 15.0)
-        .font_size(15)
-        .padded_w_of(ids.send_text, PAD)
-        .color(conrod::color::rgb(20.2, 40.35, 0.45))
-        .set(ids.textedit, ui)
-        {
-            *textedit_text = edit;
-        };
-
 //This is the text that should echo all recieved chat, as soon as I figure out how to do it :)
 //I really need to read up more on threads in rust.
     widget::Text::new(chat_text)
@@ -137,6 +130,18 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
         .line_spacing(10.0)
         .set(ids.chat_text, ui);
 
+//This is the user-editable chat text.
+    for edit in widget::TextEdit::new(textedit_text)
+        .top_left_with_margins_on(ids.send_text, 15.0, 15.0)
+        .font_size(15)
+        .padded_w_of(ids.send_text, PAD)
+        .color(conrod::color::rgb(20.2, 40.35, 0.45))
+        .restrict_to_height(false)
+        .set(ids.textedit, ui)
+        {
+            *textedit_text = edit;
+        }
+
 //This is the send button that sends whats in the TextEdit and then erases it.
     let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
     for _click in button.clone().middle_of(ids.send_button).set(ids.bing, ui) {
@@ -144,7 +149,6 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
 /*
 *This is the client-part of the chat-program, currently simply sends one message and println's the response as well as what was sent.
 **/
-            std::thread::sleep(std::time::Duration::from_millis(1000));
             connect("ws://127.0.0.1:3012", |out| {
                 out.send(&*format!("{}",textedit_text)).unwrap();
 
