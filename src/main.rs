@@ -59,12 +59,13 @@ fn main()
 *This is the server-part of the chat-program, currently simply echoes back what was recieved.
 *It is here that chat messages should be presented to the user.
 **/
-    thread::spawn(move || {
+    let server_listen = thread::spawn(move || {
         listen
         ("127.0.0.1:3012",
             |out| {
             move |msg| {
                 out.send(&*format!("{0}{1}{0}",msg, " SVAR! "))
+                //&*format!("{0}{1}{0}",msg, " SVAR! ")
                 }
             }
         ).unwrap(); 
@@ -125,6 +126,7 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
     widget::Text::new(chat_text)
         .color(color::LIGHT_RED)
         .top_left_with_margins_on(ids.tab_chattext1, 15.0, 15.0)
+        .padded_w_of(ids.tab_chattext1, PAD)
         .align_text_left()
         .font_size(15)
         .line_spacing(10.0)
@@ -160,11 +162,11 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
                 out.send(&*format!("{}",textedit_text)).unwrap();
 
                 move |msg| {
-                    println!("Got response: {}", msg);
+//                    println!("Got response: {}", msg);
                     out.close(CloseCode::Normal)
                 }
             }).unwrap();
-        println!("{}", *textedit_text);
+        chat_text.push_str(&*format!("\n{}", textedit_text));
         *textedit_text = String::new();
     }
 }
