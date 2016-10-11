@@ -105,9 +105,9 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
     widget::Canvas::new().flow_down(&[
         (ids.header, widget::Canvas::new().color(color::BLUE).pad_bottom(20.0)),
         (ids.body, widget::Canvas::new().flow_right(&[
-            (ids.send_text, widget::Canvas::new().color(color::RED).pad_bottom(20.0)),
-            (ids.send_button, widget::Canvas::new().color(color::BLACK).pad_bottom(20.0))
-            ]))
+            (ids.send_text, widget::Canvas::new().color(color::RED).crop_kids().scroll_kids()),
+            (ids.send_button, widget::Canvas::new().color(color::BLACK).length_weight(0.1))
+            ]).length_weight(0.5))
         ]).set(ids.master, ui);
         
 
@@ -132,18 +132,25 @@ fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids, textedit_text: &mut St
 
 //This is the user-editable chat text.
     for edit in widget::TextEdit::new(textedit_text)
-        .top_left_with_margins_on(ids.send_text, 15.0, 15.0)
-        .font_size(15)
+        .parent(ids.send_text)
+        .mid_top_of(ids.send_text)
+        .align_text_left()
+        .font_size(12)
         .padded_w_of(ids.send_text, PAD)
+        .h(400.0)
         .color(conrod::color::rgb(20.2, 40.35, 0.45))
-        .restrict_to_height(false)
+        .restrict_to_height(true)
         .set(ids.textedit, ui)
         {
             *textedit_text = edit;
         }
+    widget::Scrollbar::y_axis(ids.send_text)
+        .auto_hide(true)
+        .color(color::GRAY)
+        .set(ids.chat_text_scrollbar, ui);
 
 //This is the send button that sends whats in the TextEdit and then erases it.
-    let button = widget::Button::new().color(color::RED).w_h(30.0, 30.0);
+    let button = widget::Button::new().color(color::GRAY).w_h(30.0, 30.0);
     for _click in button.clone().middle_of(ids.send_button).set(ids.bing, ui) {
 
 /*
@@ -168,6 +175,7 @@ widget_ids! {
     struct Ids {
         master,
         header,
+        chat_text_scrollbar,
         chat_text,
         body,
         tabs,
